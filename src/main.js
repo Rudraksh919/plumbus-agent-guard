@@ -28,12 +28,16 @@ const elements = Object.fromEntries(
     "connect-button", "refresh-button", "vault-balance", "policy-cap", "owner-address", "agent-address",
     "recipient-address", "limit-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
+    "change-account-button", "wallet-balance", "wallet-balance-row",
+    "llm-goal", "llm-propose-button", "llm-result",
+    "audit-log", "clear-audit-button", "network-health",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
 let provider;
 let signer;
 let policy;
+const auditStorageKey = "plumbus-guard-audit";
 
 function shortAddress(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -49,7 +53,35 @@ function setMessage(message, state = "neutral") {
 function setConnection(address) {
   elements["connection-status"].textContent = address ? `Connected as ${shortAddress(address)}` : "Wallet not connected";
   elements["connection-dot"].classList.toggle("online", Boolean(address));
-  elements["connect-button"].textContent = address ? shortAddress(address) : "Connect wallet";
+  elements["connect-button"].textContent = address ? `Disconnect ${shortAddress(address)}` : "Connect wallet";
+  elements["change-account-button"].hidden = !address;
+}
+
+function getAudit() {
+  try { return JSON.parse(localStorage.getItem(auditStorageKey) || "[]"); } catch { return []; }
+}
+
+function renderAudit() {
+  const entries = getAudit();
+  if (!entries.length) {
+    elements["audit-log"].innerHTML = "<li class=\"audit-empty\">No local decisions yet. Ask the LLM or submit an intent to begin the trace.</li>";
+    return;
+  }
+  elements["audit-log"].replaceChildren(...entries.map((entry) => {
+    const item = document.createElement("li");
+    item.className = `audit-entry ${entry.state}`;
+    item.innerHTML = `<span class="audit-state">${entry.state === "blocked" ? "×" : entry.state === "approved" ? "✓" : "•"}</span><div><strong></strong><p></p></div><time></time>`;
+    item.querySelector("strong").textContent = entry.title;
+    item.querySelector("p").textContent = entry.detail;
+    item.querySelector("time").textContent = new Date(entry.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return item;
+  }));
+}
+
+function addAudit(title, detail, state = "neutral") {
+  const entries = [{ title, detail, state, at: Date.now() }, ...getAudit()].slice(0, 8);
+  try { localStorage.setItem(auditStorageKey, JSON.stringify(entries)); } catch { /* Local audit is optional. */ }
+  renderAudit();
 }
 
 async function ensureBaseSepolia() {
@@ -75,7 +107,11 @@ async function refreshPolicy() {
       contract.owner(), contract.agent(), contract.approvedRecipient(), contract.maxTransferAmount(), contract.plumbus(),
     ]);
     const plumbus = new Contract(token, erc20Abi, provider);
-    const balance = await plumbus.balanceOf(VAULT_ADDRESS);
+    const connectedAddress = signer ? await signer.getAddress() : undefined;
+    const [balance, connectedBalance] = await Promise.all([
+      plumbus.balanceOf(VAULT_ADDRESS),
+      connectedAddress ? plumbus.balanceOf(connectedAddress) : Promise.resolve(undefined),
+    ]);
     policy = { owner, agent, recipient, cap };
 
     elements["owner-address"].textContent = shortAddress(owner);
@@ -86,7 +122,13 @@ async function refreshPolicy() {
     elements["policy-cap"].innerHTML = `${formatUnits(cap, 18)} <small>PLUMBUS</small>`;
     elements["recipient-input"].value = recipient;
     elements["basescan-link"].href = `https://sepolia.basescan.org/address/${VAULT_ADDRESS}#code`;
+    elements["wallet-balance-row"].hidden = !connectedAddress;
+    if (connectedBalance !== undefined) {
+      elements["wallet-balance"].textContent = `${formatUnits(connectedBalance, 18)} PLUMBUS`;
+    }
+    elements["network-health"].textContent = "Base Sepolia live";
   } catch (error) {
+    elements["network-health"].textContent = "RPC unavailable";
     setMessage("Unable to load the Base Sepolia vault. Check your network connection.", "danger");
   }
 }
@@ -102,10 +144,57 @@ async function connect() {
     await provider.send("eth_requestAccounts", []);
     signer = await provider.getSigner();
     setConnection(await signer.getAddress());
+    addAudit("Wallet connected", `Signer ${shortAddress(await signer.getAddress())} is ready on Base Sepolia.`);
     await refreshPolicy();
   } catch (error) {
     setMessage(error.shortMessage || "Wallet connection was cancelled.", "danger");
   }
+}
+
+async function disconnect() {
+  signer = undefined;
+  provider = new JsonRpcProvider(BASE_SEPOLIA.rpcUrls[0]);
+  setConnection();
+  addAudit("Wallet disconnected", "The dashboard returned to read-only policy monitoring.");
+  setMessage("Wallet disconnected from this app. Vault data remains available in read-only mode.");
+  await refreshPolicy();
+}
+
+async function switchAccount() {
+  if (!window.ethereum) {
+    setMessage("MetaMask is required to switch accounts.", "danger");
+    return;
+  }
+  try {
+    await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+    await connect();
+  } catch (error) {
+    setMessage(error.shortMessage || "Account switch was cancelled.", "danger");
+  }
+}
+
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", async (accounts) => {
+    if (!accounts.length) return disconnect();
+    provider = new BrowserProvider(window.ethereum);
+    signer = await provider.getSigner(accounts[0]);
+    setConnection(accounts[0]);
+    await refreshPolicy();
+  });
+
+  window.ethereum.on("chainChanged", async (chainId) => {
+    if (chainId !== BASE_SEPOLIA.chainId) {
+      await disconnect();
+      setMessage("Network changed. Switch back to Base Sepolia before executing an agent action.", "danger");
+      return;
+    }
+    if (signer) {
+      provider = new BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      setConnection(await signer.getAddress());
+      await refreshPolicy();
+    }
+  });
 }
 
 function loadSafeScenario() {
@@ -133,6 +222,9 @@ function decodePolicyError(error) {
 
 async function executeIntent() {
   if (!signer) return connect();
+  await ensureBaseSepolia();
+  provider = new BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
   const recipient = elements["recipient-input"].value.trim();
   const amount = elements["amount-input"].value.trim();
   if (!isAddress(recipient) || !amount || Number(amount) <= 0) {
@@ -149,16 +241,67 @@ async function executeIntent() {
     setMessage(`Transaction submitted: ${shortAddress(transaction.hash)}. Waiting for confirmation...`, "success");
     await transaction.wait();
     setMessage("Policy-approved transfer confirmed on Base Sepolia.", "success");
+    addAudit("Transfer confirmed", `${amount} PLUMBUS reached ${shortAddress(recipient)} through the policy vault.`, "approved");
     await refreshPolicy();
   } catch (error) {
-    setMessage(`Policy blocked action: ${decodePolicyError(error)}`, "danger");
+    const reason = decodePolicyError(error);
+    setMessage(`Policy blocked action: ${reason}`, "danger");
+    addAudit("Manual intent blocked", reason, "blocked");
   }
 }
 
-elements["connect-button"].addEventListener("click", connect);
+async function requestLlmProposal() {
+  const goal = elements["llm-goal"].value.trim();
+  if (!goal) {
+    elements["llm-result"].textContent = "Enter an LLM agent goal first.";
+    return;
+  }
+  elements["llm-propose-button"].disabled = true;
+  elements["llm-result"].textContent = "Asking the LLM for a proposal and checking the live policy...";
+  try {
+    const response = await fetch("/api/propose", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "LLM proposal failed.");
+
+    elements["recipient-input"].value = result.proposal.recipient;
+    elements["amount-input"].value = result.proposal.amount;
+    const summary = `LLM proposed ${result.proposal.amount} PLUMBUS to ${shortAddress(result.proposal.recipient)}. ${result.proposal.rationale}`;
+    if (result.policy.allowed) {
+      elements["llm-result"].textContent = `${summary} Policy approved: ${result.policy.message}`;
+      setMessage("LLM proposal passed the on-chain preflight. Connect the Agent wallet to execute it.", "success");
+      addAudit("LLM proposal approved", `${result.proposal.amount} PLUMBUS to ${shortAddress(result.proposal.recipient)} passed the policy preflight.`, "approved");
+    } else {
+      elements["llm-result"].textContent = `${summary} Policy blocked: ${result.policy.message}`;
+      setMessage(`Policy blocked the LLM proposal: ${result.policy.message}`, "danger");
+      addAudit("LLM proposal blocked", `${result.policy.message}: ${result.proposal.amount} PLUMBUS to ${shortAddress(result.proposal.recipient)}.`, "blocked");
+    }
+  } catch (error) {
+    elements["llm-result"].textContent = error.message;
+    setMessage("LLM proposal could not be completed.", "danger");
+  } finally {
+    elements["llm-propose-button"].disabled = false;
+  }
+}
+
+elements["connect-button"].addEventListener("click", () => signer ? disconnect() : connect());
+elements["change-account-button"].addEventListener("click", switchAccount);
 elements["refresh-button"].addEventListener("click", refreshPolicy);
 elements["safe-scenario"].addEventListener("click", loadSafeScenario);
 elements["attack-scenario"].addEventListener("click", loadAttackScenario);
 elements["execute-button"].addEventListener("click", executeIntent);
+elements["llm-propose-button"].addEventListener("click", requestLlmProposal);
+document.querySelectorAll("[data-goal]").forEach((button) => button.addEventListener("click", () => {
+  elements["llm-goal"].value = button.dataset.goal;
+  elements["llm-goal"].focus();
+}));
+elements["clear-audit-button"].addEventListener("click", () => {
+  localStorage.removeItem(auditStorageKey);
+  renderAudit();
+});
 elements["basescan-link"].href = `https://sepolia.basescan.org/address/${VAULT_ADDRESS}#code`;
+renderAudit();
 refreshPolicy();

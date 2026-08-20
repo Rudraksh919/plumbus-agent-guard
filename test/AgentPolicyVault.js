@@ -29,4 +29,11 @@ describe("AgentPolicyVault", function () {
     await expect(vault.connect(agent).executeTransfer(recipient, cap + 1n))
       .to.be.revertedWithCustomError(vault, "AmountExceedsPolicy");
   });
+
+  it("blocks a compromised agent from sending to an unapproved recipient", async function () {
+    const { agent, attacker, vault } = await deployVault();
+
+    await expect(vault.connect(agent).executeTransfer(attacker, ethers.parseUnits("1", 18)))
+      .to.be.revertedWithCustomError(vault, "RecipientNotApproved");
+  });
 });
