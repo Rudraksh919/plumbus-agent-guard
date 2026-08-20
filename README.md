@@ -2,13 +2,13 @@
 
 Track 1 submission for PClub x EF: AI Agents x DeFi.
 
-An agent can transfer $PLUMBUS only through an on-chain policy vault. The vault enforces an owner-set agent address, approved recipient, and per-transfer limit, so the agent never controls the vault or its policy.
+An agent can transfer $PLUMBUS only through an on-chain policy vault. The vault enforces an owner-set agent address, approved recipient, per-transfer limit, and total mandate budget, so the agent never controls the vault or its policy.
 
 ## Base Sepolia deployment
 
-- Vault: [0x7cd923ecB9F931357EE20dB5e42776224b47ee2e](https://sepolia.basescan.org/address/0x7cd923ecB9F931357EE20dB5e42776224b47ee2e)
+Deploy the budget-enforcing vault with the command below and use its emitted address everywhere marked `VAULT_ADDRESS`. The prior deployment does not include the total-budget control.
+
 - $PLUMBUS: `0x18a0Ea0e27e906097d459E57a32dB07B7071c5F5`
-- Allowed transfer: [transaction](https://sepolia.basescan.org/tx/0xb1d3cfb98d5c391a627471ea407856e61e5269b5091918427f81f8d9808a801e)
 
 ## Policy
 
@@ -17,8 +17,9 @@ The owner configures:
 - A dedicated agent address.
 - One approved recipient.
 - A maximum transfer of 100 $PLUMBUS.
+- A total policy budget of 200 $PLUMBUS across all agent actions.
 
-Only the agent may call `executeTransfer`. The vault rejects a transfer to any other recipient or a transfer greater than 100 $PLUMBUS.
+Only the agent may call `executeTransfer`. The vault rejects a transfer to any other recipient, a transfer greater than 100 $PLUMBUS, or any sequence of transfers that exceeds the 200 $PLUMBUS mandate budget. Only an explicit owner policy update can create a new mandate and reset its budget.
 
 ## Run locally
 
@@ -50,7 +51,7 @@ The dashboard includes safe, cap-breach, and recipient-hijack prompt presets. Ea
 
 ### Dashboard demo
 
-1. Open the dashboard and show the live vault balance, verified contract, agent, recipient, and 100 $PLUMBUS policy cap.
+1. Open the dashboard and show the live vault balance, verified contract, agent, recipient, 100 $PLUMBUS action cap, and remaining 200 $PLUMBUS mandate budget.
 2. Connect MetaMask with the dedicated Agent account.
 3. Click **Load permitted action**, then **Preflight and execute as agent** to submit a policy-compliant transfer.
 4. Click **Simulate hostile intent**. Its non-approved recipient and excessive amount are rejected by the contract's preflight, showing `Policy blocked action` with no funds moved.
@@ -63,8 +64,10 @@ AGENT_PRIVATE_KEY=0xagent_private_key
 AGENT_ADDRESS=0xagent_address
 APPROVED_RECIPIENT=0xrecipient_address
 MAX_TRANSFER_PLUMBUS=100
+MAX_TOTAL_PLUMBUS=200
 AMOUNT_PLUMBUS=75
 VAULT_ADDRESS=0xdeployed_vault_address
+VITE_VAULT_ADDRESS=0xdeployed_vault_address
 ETHERSCAN_API_KEY=your_etherscan_v2_api_key
 # Optional locally; deployed visitors can use BYOK instead.
 OPENAI_API_KEY=your_openai_api_key
@@ -105,7 +108,8 @@ Vercel hosts the Vite dashboard and the `/api/propose` serverless function from 
 
 ```env
 BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
-VAULT_ADDRESS=0x7cd923ecB9F931357EE20dB5e42776224b47ee2e
+VAULT_ADDRESS=0xdeployed_vault_address
+VITE_VAULT_ADDRESS=0xdeployed_vault_address
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
 ```
@@ -122,11 +126,11 @@ Never add `PRIVATE_KEY`, `AGENT_PRIVATE_KEY`, or `ETHERSCAN_API_KEY` to Vercel. 
 Create an Etherscan API V2 key, add it to `.env.local`, then verify the deployed contract on Base Sepolia:
 
 ```powershell
-npx hardhat verify --network baseSepolia 0x7cd923ecB9F931357EE20dB5e42776224b47ee2e 0x18a0Ea0e27e906097d459E57a32dB07B7071c5F5 0x04B3e2f1d3b7Ac344D0D9Eb697A8E060b5a53B99 0x2097A2496970FD67C1Ec5D3c6600393fe8585475 100000000000000000000
+npx hardhat verify --network baseSepolia <VAULT_ADDRESS> 0x18a0Ea0e27e906097d459E57a32dB07B7071c5F5 <AGENT_ADDRESS> <APPROVED_RECIPIENT> 100000000000000000000 200000000000000000000
 ```
 
 ## Demo results
 
-`AMOUNT_PLUMBUS=75` was accepted and confirmed on Base Sepolia.
+`AMOUNT_PLUMBUS=75` is accepted while it remains within both the action cap and mandate budget.
 
-`AMOUNT_PLUMBUS=101` was rejected with `Policy blocked action: AmountExceedsPolicy`.
+`AMOUNT_PLUMBUS=101` is rejected with `Policy blocked action: AmountExceedsPolicy`; a sequence exceeding 200 $PLUMBUS is rejected with `TotalSpendExceedsPolicy`.

@@ -5,10 +5,13 @@ const vaultAbi = [
   "function agent() view returns (address)",
   "function approvedRecipient() view returns (address)",
   "function maxTransferAmount() view returns (uint256)",
+  "function maxTotalSpend() view returns (uint256)",
+  "function spentAmount() view returns (uint256)",
   "function executeTransfer(address recipient, uint256 amount)",
   "error AmountExceedsPolicy()",
   "error NotAgent()",
   "error RecipientNotApproved()",
+  "error TotalSpendExceedsPolicy()",
 ];
 const vaultInterface = new ethers.Interface(vaultAbi);
 
@@ -73,13 +76,15 @@ async function main() {
 
   const provider = new ethers.JsonRpcProvider(BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org");
   const vault = new ethers.Contract(VAULT_ADDRESS, vaultAbi, provider);
-  const [agent, approvedRecipient, maxTransferAmount] = await Promise.all([
+  const [agent, approvedRecipient, maxTransferAmount, maxTotalSpend, spentAmount] = await Promise.all([
     vault.agent(), vault.approvedRecipient(), vault.maxTransferAmount(),
+    vault.maxTotalSpend(), vault.spentAmount(),
   ]);
   const mandate = {
     agent,
     approvedRecipient,
     maxTransferPlumbus: ethers.formatUnits(maxTransferAmount, 18),
+    remainingBudgetPlumbus: ethers.formatUnits(maxTotalSpend - spentAmount, 18),
   };
 
   const proposal = validateProposal(await requestProposal(mandate, AGENT_GOAL));

@@ -8,17 +8,20 @@ const BASE_SEPOLIA = {
   rpcUrls: ["https://sepolia.base.org"],
   blockExplorerUrls: ["https://sepolia.basescan.org"],
 };
-const VAULT_ADDRESS = "0x7cd923ecB9F931357EE20dB5e42776224b47ee2e";
+const VAULT_ADDRESS = import.meta.env.VITE_VAULT_ADDRESS;
 const vaultAbi = [
   "function owner() view returns (address)",
   "function agent() view returns (address)",
   "function approvedRecipient() view returns (address)",
   "function maxTransferAmount() view returns (uint256)",
+  "function maxTotalSpend() view returns (uint256)",
+  "function spentAmount() view returns (uint256)",
   "function plumbus() view returns (address)",
   "function executeTransfer(address recipient, uint256 amount)",
   "error AmountExceedsPolicy()",
   "error NotAgent()",
   "error RecipientNotApproved()",
+  "error TotalSpendExceedsPolicy()",
 ];
 const erc20Abi = ["function balanceOf(address) view returns (uint256)"];
 const vaultInterface = new Interface(vaultAbi);
@@ -26,7 +29,7 @@ const vaultInterface = new Interface(vaultAbi);
 const elements = Object.fromEntries(
   [
     "connect-button", "refresh-button", "vault-balance", "policy-cap", "owner-address", "agent-address",
-    "recipient-address", "limit-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
+    "recipient-address", "limit-value", "budget-value", "policy-budget-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
     "change-account-button", "wallet-balance", "wallet-balance-row",
     "llm-goal", "llm-propose-button", "llm-result", "byok-api-key", "wallet-role", "use-agent-button",
@@ -116,10 +119,12 @@ function vault() {
 
 async function refreshPolicy() {
   try {
+    if (!isAddress(VAULT_ADDRESS)) throw new Error("Set VITE_VAULT_ADDRESS to the deployed policy vault.");
     if (!provider) provider = new JsonRpcProvider(BASE_SEPOLIA.rpcUrls[0]);
     const contract = vault();
-    const [owner, agent, recipient, cap, token] = await Promise.all([
-      contract.owner(), contract.agent(), contract.approvedRecipient(), contract.maxTransferAmount(), contract.plumbus(),
+    const [owner, agent, recipient, cap, maxTotalSpend, spentAmount, token] = await Promise.all([
+      contract.owner(), contract.agent(), contract.approvedRecipient(), contract.maxTransferAmount(),
+      contract.maxTotalSpend(), contract.spentAmount(), contract.plumbus(),
     ]);
     const plumbus = new Contract(token, erc20Abi, provider);
     const connectedAddress = signer ? await signer.getAddress() : undefined;
@@ -127,7 +132,7 @@ async function refreshPolicy() {
       plumbus.balanceOf(VAULT_ADDRESS),
       connectedAddress ? plumbus.balanceOf(connectedAddress) : Promise.resolve(undefined),
     ]);
-    policy = { owner, agent, recipient, cap };
+    policy = { owner, agent, recipient, cap, remainingBudget: maxTotalSpend - spentAmount };
 
     const [ownerLabel, agentLabel, recipientLabel] = await Promise.all([
       displayAddress(owner, "Vault Owner"),
@@ -138,6 +143,8 @@ async function refreshPolicy() {
     elements["agent-address"].textContent = agentLabel;
     elements["recipient-address"].textContent = recipientLabel;
     elements["limit-value"].textContent = `${formatUnits(cap, 18)} PLUMBUS`;
+    elements["budget-value"].textContent = `${formatUnits(maxTotalSpend - spentAmount, 18)} PLUMBUS`;
+    elements["policy-budget-value"].textContent = `${formatUnits(maxTotalSpend - spentAmount, 18)} PLUMBUS`;
     elements["vault-balance"].innerHTML = `${Number(formatUnits(balance, 18)).toLocaleString()} <small>PLUMBUS</small>`;
     elements["policy-cap"].innerHTML = `${formatUnits(cap, 18)} <small>PLUMBUS</small>`;
     elements["recipient-input"].value = recipient;

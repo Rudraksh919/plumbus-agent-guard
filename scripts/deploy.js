@@ -8,9 +8,10 @@ async function main() {
   const agent = process.env.AGENT_ADDRESS;
   const recipient = process.env.APPROVED_RECIPIENT;
   const maxTransfer = process.env.MAX_TRANSFER_PLUMBUS;
+  const maxTotalSpend = process.env.MAX_TOTAL_PLUMBUS;
 
-  if (!agent || !recipient || !maxTransfer) {
-    throw new Error("Set AGENT_ADDRESS, APPROVED_RECIPIENT, and MAX_TRANSFER_PLUMBUS.");
+  if (!agent || !recipient || !maxTransfer || !maxTotalSpend) {
+    throw new Error("Set AGENT_ADDRESS, APPROVED_RECIPIENT, MAX_TRANSFER_PLUMBUS, and MAX_TOTAL_PLUMBUS.");
   }
 
   const Vault = await ethers.getContractFactory("AgentPolicyVault");
@@ -19,6 +20,7 @@ async function main() {
     agent,
     recipient,
     ethers.parseUnits(maxTransfer, 18),
+    ethers.parseUnits(maxTotalSpend, 18),
   );
   await vault.waitForDeployment();
 
