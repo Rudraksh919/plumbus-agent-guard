@@ -27,6 +27,21 @@ npm install
 npm test
 ```
 
+Start the MetaMask dashboard at http://localhost:5173:
+
+```powershell
+npm run dev
+```
+
+Connect the dedicated Agent account on Base Sepolia. The dashboard reads the live verified policy, can load a permitted action, and can simulate a hostile action that the vault rejects before any funds move.
+
+### Dashboard demo
+
+1. Open the dashboard and show the live vault balance, verified contract, agent, recipient, and 100 $PLUMBUS policy cap.
+2. Connect MetaMask with the dedicated Agent account.
+3. Click **Load permitted action**, then **Preflight and execute as agent** to submit a policy-compliant transfer.
+4. Click **Simulate hostile intent**. Its non-approved recipient and excessive amount are rejected by the contract's preflight, showing `Policy blocked action` with no funds moved.
+
 Create `.env.local` with Base Sepolia test-account values. Do not commit it.
 
 ```env

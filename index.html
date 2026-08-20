@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101518" />
+    <title>Plumbus Agent Guard</title>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="Plumbus Agent Guard home">
+          <span class="brand-mark">P</span>
+          <span>PLUMBUS <b>GUARD</b></span>
+        </a>
+        <div class="network-chip"><i></i> Base Sepolia</div>
+        <button id="connect-button" class="connect-button">Connect wallet</button>
+      </header>
+
+      <main id="top">
+        <section class="intro">
+          <p class="eyebrow">AI Agents x DeFi / Track 01</p>
+          <h1>Agents can decide.<br /><span>Policies decide what happens.</span></h1>
+          <p class="lead">A live, non-custodial policy layer for $PLUMBUS on Base Sepolia. The agent can propose an action; the vault enforces the owner's mandate.</p>
+          <div class="status-line"><span id="connection-dot"></span><span id="connection-status">Wallet not connected</span></div>
+        </section>
+
+        <section class="overview" aria-label="Vault overview">
+          <article class="metric-card balance-card">
+            <p>Protected vault balance</p>
+            <strong id="vault-balance">-- <small>PLUMBUS</small></strong>
+            <a id="basescan-link" target="_blank" rel="noreferrer">View verified contract <span>↗</span></a>
+          </article>
+          <article class="metric-card">
+            <p>Transfer ceiling</p>
+            <strong id="policy-cap">-- <small>PLUMBUS</small></strong>
+            <span>Per agent action</span>
+          </article>
+          <article class="metric-card">
+            <p>Contract state</p>
+            <strong class="verified">Verified</strong>
+            <span>Source on BaseScan</span>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <article class="policy-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">On-chain mandate</p>
+                <h2>Active policy</h2>
+              </div>
+              <button id="refresh-button" class="icon-button" title="Refresh vault state" aria-label="Refresh vault state">↻</button>
+            </div>
+            <dl class="policy-list">
+              <div><dt>Vault owner</dt><dd id="owner-address">--</dd></div>
+              <div><dt>Delegated agent</dt><dd id="agent-address">--</dd></div>
+              <div><dt>Approved recipient</dt><dd id="recipient-address">--</dd></div>
+              <div><dt>Maximum amount</dt><dd id="limit-value">--</dd></div>
+            </dl>
+            <div class="policy-footnote"><span>✓</span> The agent cannot modify this policy or withdraw funds outside it.</div>
+          </article>
+
+          <article class="intent-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Agent action console</p>
+                <h2>Proposed intent</h2>
+              </div>
+              <span id="intent-badge" class="intent-badge">Waiting</span>
+            </div>
+            <label for="recipient-input">Recipient</label>
+            <input id="recipient-input" spellcheck="false" inputmode="text" placeholder="0x..." />
+            <label for="amount-input">Amount <span>PLUMBUS</span></label>
+            <input id="amount-input" type="number" min="0" step="0.01" value="75" />
+            <div class="intent-actions">
+              <button id="safe-scenario" class="secondary-button">Load permitted action</button>
+              <button id="attack-scenario" class="attack-button">Simulate hostile intent</button>
+            </div>
+            <button id="execute-button" class="execute-button">Preflight and execute as agent <span>→</span></button>
+            <p id="intent-message" class="intent-message">Connect the Agent wallet to submit a policy-checked action.</p>
+          </article>
+        </section>
+
+        <section class="flow" aria-label="Policy execution flow">
+          <div><span>01</span><h3>Agent proposes</h3><p>An automation rule or model produces a transfer intent.</p></div>
+          <div><span>02</span><h3>Vault validates</h3><p>Recipient and amount are checked on-chain against owner rules.</p></div>
+          <div><span>03</span><h3>Funds move or stop</h3><p>Only permitted intents reach $PLUMBUS. Violations are rejected.</p></div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
