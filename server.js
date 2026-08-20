@@ -30,9 +30,12 @@ http.createServer(async (request, response) => {
     request.on("data", (chunk) => { body += chunk; });
     request.on("end", async () => {
       try {
-        const goal = String(JSON.parse(body).goal || "").trim();
+        const payload = JSON.parse(body);
+        const goal = String(payload.goal || "").trim();
+        const apiKey = String(payload.apiKey || "").trim();
         if (!goal || goal.length > 2_000) throw new Error("Enter an agent goal up to 2,000 characters.");
-        sendJson(response, 200, await propose(goal));
+        if (apiKey && (apiKey.length > 500 || !apiKey.startsWith("sk-"))) throw new Error("Enter a valid OpenAI API key.");
+        sendJson(response, 200, await propose(goal, { apiKey }));
       } catch (error) {
         sendJson(response, 400, { error: error.message });
       }

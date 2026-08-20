@@ -29,7 +29,7 @@ const elements = Object.fromEntries(
     "recipient-address", "limit-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
     "change-account-button", "wallet-balance", "wallet-balance-row",
-    "llm-goal", "llm-propose-button", "llm-result",
+    "llm-goal", "llm-propose-button", "llm-result", "byok-api-key", "wallet-role",
     "audit-log", "clear-audit-button", "network-health",
   ].map((id) => [id, document.getElementById(id)]),
 );
@@ -55,6 +55,8 @@ function setConnection(address) {
   elements["connection-dot"].classList.toggle("online", Boolean(address));
   elements["connect-button"].textContent = address ? `Disconnect ${shortAddress(address)}` : "Connect wallet";
   elements["change-account-button"].hidden = !address;
+  elements["wallet-role"].hidden = !address;
+  if (!address) elements["execute-button"].disabled = false;
 }
 
 function getAudit() {
@@ -125,6 +127,12 @@ async function refreshPolicy() {
     elements["wallet-balance-row"].hidden = !connectedAddress;
     if (connectedBalance !== undefined) {
       elements["wallet-balance"].textContent = `${formatUnits(connectedBalance, 18)} PLUMBUS`;
+    }
+    if (connectedAddress) {
+      const isAgent = connectedAddress.toLowerCase() === agent.toLowerCase();
+      elements["wallet-role"].textContent = isAgent ? "Agent authority" : "Observer mode";
+      elements["wallet-role"].dataset.role = isAgent ? "agent" : "observer";
+      elements["execute-button"].disabled = !isAgent;
     }
     elements["network-health"].textContent = "Base Sepolia live";
   } catch (error) {
@@ -252,6 +260,7 @@ async function executeIntent() {
 
 async function requestLlmProposal() {
   const goal = elements["llm-goal"].value.trim();
+  const apiKey = elements["byok-api-key"].value.trim();
   if (!goal) {
     elements["llm-result"].textContent = "Enter an LLM agent goal first.";
     return;
@@ -262,7 +271,7 @@ async function requestLlmProposal() {
     const response = await fetch("/api/propose", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goal }),
+      body: JSON.stringify({ goal, apiKey }),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "LLM proposal failed.");
@@ -283,6 +292,7 @@ async function requestLlmProposal() {
     elements["llm-result"].textContent = error.message;
     setMessage("LLM proposal could not be completed.", "danger");
   } finally {
+    elements["byok-api-key"].value = "";
     elements["llm-propose-button"].disabled = false;
   }
 }

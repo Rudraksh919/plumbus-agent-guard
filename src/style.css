@@ -22,6 +22,8 @@ h1 { max-width: 760px; margin-bottom: 20px; font-size: clamp(36px, 6vw, 70px); l
 h1 span { color: #c4de93; }
 .lead { max-width: 650px; color: #b8c1b5; font-size: 16px; line-height: 1.7; }
 .status-line { display: flex; align-items: center; gap: 9px; color: #a6b5a7; font: 12px "DM Mono", monospace; }
+.wallet-role { color: #a6b5a7; border-left: 1px solid #455440; padding-left: 9px; }
+.wallet-role[data-role="agent"] { color: #c4de93; }
 #connection-dot { width: 8px; height: 8px; background: #657067; border-radius: 50%; }
 #connection-dot.online { background: #c4de93; box-shadow: 0 0 0 4px rgba(196, 222, 147, .12); }
 .signal-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
@@ -55,6 +57,7 @@ input:focus, textarea:focus { border-color: #c4de93; }
 .secondary-button, .attack-button { min-height: 42px; padding: 9px; background: transparent; border: 1px solid #455440; color: #d9e4d0; font-size: 12px; font-weight: 700; }
 .attack-button { color: #ffb0a6; border-color: #7a4b45; }
 .execute-button { width: 100%; min-height: 48px; margin-top: 0; font-size: 13px; }
+.execute-button:disabled { cursor: not-allowed; opacity: .42; }
 .execute-button span { margin-left: 6px; font-size: 18px; }
 .intent-message { min-height: 38px; margin: 15px 0 0; color: #a6b5a7; font-size: 12px; line-height: 1.5; }
 .intent-message[data-state="success"], .intent-badge[data-state="success"] { color: #c4de93; }

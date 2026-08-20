@@ -66,6 +66,7 @@ MAX_TRANSFER_PLUMBUS=100
 AMOUNT_PLUMBUS=75
 VAULT_ADDRESS=0xdeployed_vault_address
 ETHERSCAN_API_KEY=your_etherscan_v2_api_key
+# Optional locally; deployed visitors can use BYOK instead.
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
 AGENT_GOAL=Send 5 PLUMBUS to the approved recipient for a scheduled payout.
@@ -109,7 +110,9 @@ OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-4. Deploy. Vercel runs `npm run build`, serves `dist`, and keeps `OPENAI_API_KEY` inside the serverless function.
+`OPENAI_API_KEY` is optional. Omit it to run in BYOK mode: each visitor enters their own key in the password field for one proposal request. The app does not save it in local storage or Vercel environment variables.
+
+4. Deploy. Vercel runs `npm run build`, serves `dist`, and uses the serverless function only to send the visitor's one-time key to OpenAI and preflight the returned proposal.
 5. Open the generated `https://...vercel.app` URL, connect MetaMask on Base Sepolia, and run a safe and hostile Attack Lab scenario.
 
 Never add `PRIVATE_KEY`, `AGENT_PRIVATE_KEY`, or `ETHERSCAN_API_KEY` to Vercel. The deployed app uses MetaMask for execution and needs only the public vault address plus the server-side OpenAI key.
