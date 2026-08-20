@@ -38,9 +38,21 @@ let provider;
 let signer;
 let policy;
 const auditStorageKey = "plumbus-guard-audit";
+const addressLabels = new Map();
 
 function shortAddress(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+async function displayAddress(address, fallback) {
+  if (!addressLabels.has(address)) {
+    try {
+      addressLabels.set(address, await provider.lookupAddress(address) || fallback);
+    } catch {
+      addressLabels.set(address, fallback);
+    }
+  }
+  return `${addressLabels.get(address)} / ${shortAddress(address)}`;
 }
 
 function setMessage(message, state = "neutral") {
@@ -117,9 +129,14 @@ async function refreshPolicy() {
     ]);
     policy = { owner, agent, recipient, cap };
 
-    elements["owner-address"].textContent = shortAddress(owner);
-    elements["agent-address"].textContent = shortAddress(agent);
-    elements["recipient-address"].textContent = shortAddress(recipient);
+    const [ownerLabel, agentLabel, recipientLabel] = await Promise.all([
+      displayAddress(owner, "Vault Owner"),
+      displayAddress(agent, "Deployed Agent"),
+      displayAddress(recipient, recipient.toLowerCase() === owner.toLowerCase() ? "Vault Owner" : "Approved Recipient"),
+    ]);
+    elements["owner-address"].textContent = ownerLabel;
+    elements["agent-address"].textContent = agentLabel;
+    elements["recipient-address"].textContent = recipientLabel;
     elements["limit-value"].textContent = `${formatUnits(cap, 18)} PLUMBUS`;
     elements["vault-balance"].innerHTML = `${Number(formatUnits(balance, 18)).toLocaleString()} <small>PLUMBUS</small>`;
     elements["policy-cap"].innerHTML = `${formatUnits(cap, 18)} <small>PLUMBUS</small>`;
@@ -131,6 +148,9 @@ async function refreshPolicy() {
     }
     if (connectedAddress) {
       const isAgent = connectedAddress.toLowerCase() === agent.toLowerCase();
+      const isOwner = connectedAddress.toLowerCase() === owner.toLowerCase();
+      const connectedRole = isAgent ? "Deployed Agent" : isOwner ? "Vault Owner" : "Observer wallet";
+      elements["connection-status"].textContent = `Connected as ${connectedRole} / ${shortAddress(connectedAddress)}`;
       elements["wallet-role"].textContent = isAgent ? "Agent authority" : "Observer mode";
       elements["wallet-role"].dataset.role = isAgent ? "agent" : "observer";
       elements["execute-button"].disabled = !isAgent;

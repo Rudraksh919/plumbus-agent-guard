@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=DM+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root { color: #f3f6ee; background: #101518; font-family: Manrope, sans-serif; font-synthesis: none; }
 * { box-sizing: border-box; }
@@ -94,3 +94,121 @@ input:focus, textarea:focus { border-color: #c4de93; }
 .audit-entry.blocked .audit-state { color: #ffb0a6; }
 .audit-empty { display: block; color: #a6b5a7; font-size: 12px; line-height: 1.5; }
 @media (max-width: 720px) { .shell { width: min(100% - 28px, 1180px); } .topbar { min-height: 72px; gap: 9px; } .network-chip, .change-account-button { display: none; } .connect-button { margin-left: auto; padding: 10px; } .intro { padding: 52px 0 31px; } .overview, .workspace, .flow, .audit-log { grid-template-columns: 1fr; } .metric-card, .metric-card:first-child { border-left: 0; border-top: 1px solid #2e3933; } .metric-card:first-child { border-top: 0; } .workspace { gap: 12px; } .policy-panel, .intent-panel { padding: 21px; } .flow div + div { border-left: 0; border-top: 1px solid #2e3933; padding: 24px 0 0; } .flow div { padding-right: 0; } .audit-heading { align-items: flex-start; } }
+
+/* Sentinel visual override */
+.sentinel-mode {
+	--ink: #05070b;
+	--panel: #090f14;
+	--panel-hi: #0d161b;
+	--line: #1d3840;
+	--muted: #82959b;
+	--cyan: #49edf1;
+	--acid: #c7ff3c;
+	--coral: #ff5470;
+	--amber: #ffca5f;
+	color: #eaf7f5;
+	background: var(--ink);
+	font-family: "Chakra Petch", sans-serif;
+	overflow-x: hidden;
+}
+.sentinel-mode::before {
+	position: fixed;
+	z-index: -2;
+	inset: 0;
+	content: "";
+	background-color: var(--ink);
+	background-image: repeating-linear-gradient(0deg, transparent 0, transparent 5px, rgba(73, 237, 241, .025) 6px), repeating-linear-gradient(90deg, transparent 0, transparent 47px, rgba(73, 237, 241, .05) 48px);
+	pointer-events: none;
+}
+.sentinel-mode::after {
+	position: fixed;
+	z-index: -1;
+	inset: 0;
+	content: "";
+	opacity: .16;
+	background-image: repeating-linear-gradient(180deg, transparent 0, transparent 3px, rgba(255, 255, 255, .05) 4px);
+	pointer-events: none;
+}
+.sentinel-mode .shell { width: min(1260px, calc(100% - 48px)); }
+.sentinel-mode .topbar { min-height: 78px; border-bottom-color: var(--line); gap: 13px; }
+.sentinel-mode .brand { color: #edf9ed; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+.sentinel-mode .brand-mark { width: 32px; height: 32px; color: var(--ink); background: var(--acid); clip-path: polygon(0 0, 100% 0, 100% 75%, 75% 100%, 0 100%); box-shadow: 4px 4px 0 rgba(73, 237, 241, .45); }
+.sentinel-mode .brand b { color: var(--cyan); }
+.topbar-classified { color: var(--muted); font: 10px "IBM Plex Mono", monospace; letter-spacing: 1.5px; }
+.sentinel-mode .network-chip { color: var(--cyan); border-color: #24616c; background: rgba(11, 34, 39, .75); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .network-chip i { background: var(--acid); box-shadow: 0 0 0 4px rgba(199, 255, 60, .1); }
+.sentinel-mode .connect-button, .sentinel-mode .execute-button { color: var(--ink); background: var(--acid); border-radius: 0; box-shadow: 4px 4px 0 rgba(73, 237, 241, .42); transition: transform .16s ease, box-shadow .16s ease; }
+.sentinel-mode .connect-button:hover, .sentinel-mode .execute-button:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(73, 237, 241, .42); }
+.sentinel-mode .change-account-button, .sentinel-mode .use-agent-button { color: var(--cyan); border-color: #24616c; border-radius: 0; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .intro { position: relative; max-width: 920px; padding: 84px 0 40px; }
+.sentinel-mode .intro::before { position: absolute; top: 56px; left: -24px; width: 5px; height: 108px; content: ""; background: var(--cyan); box-shadow: 10px 16px 0 var(--coral); }
+.sentinel-mode .eyebrow { color: var(--cyan); font-family: "IBM Plex Mono", monospace; letter-spacing: 1.8px; }
+.sentinel-mode h1 { max-width: 840px; margin-bottom: 19px; color: #efffe9; font-size: 72px; font-weight: 700; line-height: .92; text-transform: uppercase; text-shadow: 3px 0 0 rgba(73, 237, 241, .28), -2px 2px 0 rgba(255, 84, 112, .22); }
+.sentinel-mode h1 span { color: var(--acid); }
+.sentinel-mode .lead { max-width: 720px; color: #aabcc0; font-size: 17px; line-height: 1.6; }
+.sentinel-mode .status-line { color: #afc2c3; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode #connection-dot { background: #405158; border-radius: 0; }
+.sentinel-mode #connection-dot.online { background: var(--acid); box-shadow: 0 0 12px rgba(199, 255, 60, .8); }
+.sentinel-mode .wallet-role { border-left-color: var(--line); }
+.sentinel-mode .signal-strip span { color: var(--cyan); border-color: #24616c; background: rgba(8, 33, 38, .55); border-radius: 0; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .overview { border-color: var(--line); background: rgba(4, 9, 13, .75); }
+.sentinel-mode .metric-card { position: relative; min-height: 152px; border-left-color: var(--line); background: linear-gradient(135deg, rgba(13, 26, 31, .82), rgba(6, 10, 14, .82)); }
+.sentinel-mode .metric-card::after { position: absolute; right: 0; bottom: 0; width: 22px; height: 22px; content: ""; border-right: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); opacity: .55; }
+.sentinel-mode .metric-card p, .sentinel-mode .metric-card span { color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .metric-card strong { color: #f3fffb; font-family: "IBM Plex Mono", monospace; text-shadow: 0 0 15px rgba(73, 237, 241, .17); }
+.sentinel-mode .metric-card a { color: var(--cyan); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .verified { color: var(--acid) !important; text-shadow: 0 0 16px rgba(199, 255, 60, .35) !important; }
+.sentinel-mode .workspace { gap: 14px; margin: 14px 0 24px; }
+.sentinel-mode .policy-panel, .sentinel-mode .intent-panel { position: relative; border: 1px solid var(--line); border-radius: 0; background: rgba(6, 13, 18, .94); box-shadow: inset 0 0 0 1px rgba(73, 237, 241, .035); }
+.sentinel-mode .policy-panel::before, .sentinel-mode .intent-panel::before { position: absolute; top: -1px; left: 20px; width: 38%; height: 2px; content: ""; background: var(--cyan); }
+.sentinel-mode .intent-panel::before { background: var(--acid); }
+.sentinel-mode h2 { color: #f0fff9; font-size: 27px; text-transform: uppercase; }
+.sentinel-mode .icon-button { color: var(--acid); border-color: #4f6535; border-radius: 0; background: #0b1612; }
+.sentinel-mode .policy-list div { border-top-color: var(--line); }
+.sentinel-mode .policy-list dt { color: #a7babd; }
+.sentinel-mode .policy-list dd { color: var(--cyan); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .policy-footnote { color: var(--acid); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode label { color: #a5b8bb; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode label span { color: var(--cyan); }
+.sentinel-mode input, .sentinel-mode textarea { color: #e6ffff; border-color: #25454d; border-radius: 0; background: #050b0e; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode input:focus, .sentinel-mode textarea:focus { border-color: var(--cyan); box-shadow: inset 3px 0 0 var(--acid); }
+.sentinel-mode .secondary-button { color: var(--cyan); border-color: #24616c; border-radius: 0; background: #07151a; }
+.sentinel-mode .attack-button { color: var(--coral); border-color: #7a394a; border-radius: 0; background: #160a10; }
+.sentinel-mode .execution-note, .sentinel-mode .intent-message, .sentinel-mode .llm-result { color: #a6b9bb; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .execution-note b { color: var(--acid); }
+.sentinel-mode .intent-message[data-state="success"], .sentinel-mode .intent-badge[data-state="success"] { color: var(--acid); }
+.sentinel-mode .intent-message[data-state="danger"], .sentinel-mode .intent-badge[data-state="danger"] { color: var(--coral); }
+.sentinel-mode .intent-badge { border-radius: 0; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .llm-console { border-top-color: var(--line); }
+.sentinel-mode .prompt-preset { color: var(--cyan); border-color: #24616c; border-radius: 0; background: #07151a; }
+.sentinel-mode .prompt-preset.warning { color: var(--amber); border-color: #7a6533; background: #171207; }
+.sentinel-mode .prompt-preset.danger { color: var(--coral); border-color: #7a394a; background: #160a10; }
+.sentinel-mode .llm-button { color: #070b0a; border-radius: 0; background: var(--cyan); box-shadow: 4px 4px 0 rgba(255, 84, 112, .7); }
+.sentinel-mode .flow { border-top-color: var(--line); }
+.sentinel-mode .flow div + div { border-left-color: var(--line); }
+.sentinel-mode .flow span { color: var(--coral); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .flow h3 { color: #e9fff5; text-transform: uppercase; }
+.sentinel-mode .flow p { color: var(--muted); }
+.sentinel-mode .audit-section { border-top-color: var(--line); }
+.sentinel-mode .audit-entry, .sentinel-mode .audit-empty { border-color: var(--line); border-radius: 0; background: rgba(6, 13, 18, .93); }
+.sentinel-mode .audit-entry { border-left: 3px solid #46545a; }
+.sentinel-mode .audit-entry.approved { border-left-color: var(--acid); }
+.sentinel-mode .audit-entry.blocked { border-left-color: var(--coral); }
+.sentinel-mode .audit-entry strong { color: #effff8; }
+.sentinel-mode .audit-entry p, .sentinel-mode .audit-empty { color: var(--muted); }
+.sentinel-mode .audit-entry time, .sentinel-mode .clear-audit-button { color: var(--cyan); font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode .audit-state { color: var(--cyan); }
+@keyframes sentinelPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.sentinel-mode .network-chip i, .sentinel-mode #connection-dot.online { animation: sentinelPulse 1.8s steps(2, end) infinite; }
+@media (max-width: 720px) {
+	.sentinel-mode .shell { width: min(100% - 24px, 1260px); }
+	.sentinel-mode .topbar-classified { display: none; }
+	.sentinel-mode .intro { padding-top: 58px; }
+	.sentinel-mode .intro::before { left: -12px; top: 40px; height: 82px; }
+	.sentinel-mode h1 { font-size: 43px; line-height: .97; }
+	.sentinel-mode .lead { font-size: 14px; }
+	.sentinel-mode .metric-card { min-height: 132px; }
+	.sentinel-mode .signal-strip { margin-top: 19px; }
+	.sentinel-mode .audit-entry { grid-template-columns: 20px 1fr; }
+	.sentinel-mode .audit-entry time { grid-column: 2; }
+}
