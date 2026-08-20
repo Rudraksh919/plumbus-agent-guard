@@ -29,7 +29,7 @@ const elements = Object.fromEntries(
     "recipient-address", "limit-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
     "change-account-button", "wallet-balance", "wallet-balance-row",
-    "llm-goal", "llm-propose-button", "llm-result", "byok-api-key", "wallet-role",
+    "llm-goal", "llm-propose-button", "llm-result", "byok-api-key", "wallet-role", "use-agent-button",
     "audit-log", "clear-audit-button", "network-health",
   ].map((id) => [id, document.getElementById(id)]),
 );
@@ -56,6 +56,7 @@ function setConnection(address) {
   elements["connect-button"].textContent = address ? `Disconnect ${shortAddress(address)}` : "Connect wallet";
   elements["change-account-button"].hidden = !address;
   elements["wallet-role"].hidden = !address;
+  elements["use-agent-button"].hidden = !address;
   if (!address) elements["execute-button"].disabled = false;
 }
 
@@ -133,6 +134,7 @@ async function refreshPolicy() {
       elements["wallet-role"].textContent = isAgent ? "Agent authority" : "Observer mode";
       elements["wallet-role"].dataset.role = isAgent ? "agent" : "observer";
       elements["execute-button"].disabled = !isAgent;
+      elements["use-agent-button"].hidden = isAgent;
     }
     elements["network-health"].textContent = "Base Sepolia live";
   } catch (error) {
@@ -178,6 +180,25 @@ async function switchAccount() {
     await connect();
   } catch (error) {
     setMessage(error.shortMessage || "Account switch was cancelled.", "danger");
+  }
+}
+
+async function useDeployedAgent() {
+  if (!window.ethereum || !policy) return;
+  try {
+    provider = new BrowserProvider(window.ethereum);
+    const accounts = await provider.send("eth_accounts", []);
+    const agentAccount = accounts.find((account) => account.toLowerCase() === policy.agent.toLowerCase());
+    if (!agentAccount) {
+      setMessage("Click Switch account and grant access to the deployed Agent account.", "danger");
+      return;
+    }
+    signer = await provider.getSigner(agentAccount);
+    setConnection(agentAccount);
+    await refreshPolicy();
+    addAudit("Agent selected", `Signer ${shortAddress(agentAccount)} now has the vault's execution authority.`);
+  } catch (error) {
+    setMessage(error.shortMessage || "Unable to select the deployed Agent account.", "danger");
   }
 }
 
@@ -299,6 +320,7 @@ async function requestLlmProposal() {
 
 elements["connect-button"].addEventListener("click", () => signer ? disconnect() : connect());
 elements["change-account-button"].addEventListener("click", switchAccount);
+elements["use-agent-button"].addEventListener("click", useDeployedAgent);
 elements["refresh-button"].addEventListener("click", refreshPolicy);
 elements["safe-scenario"].addEventListener("click", loadSafeScenario);
 elements["attack-scenario"].addEventListener("click", loadAttackScenario);

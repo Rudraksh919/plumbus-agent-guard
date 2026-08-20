@@ -24,6 +24,7 @@ h1 span { color: #c4de93; }
 .status-line { display: flex; align-items: center; gap: 9px; color: #a6b5a7; font: 12px "DM Mono", monospace; }
 .wallet-role { color: #a6b5a7; border-left: 1px solid #455440; padding-left: 9px; }
 .wallet-role[data-role="agent"] { color: #c4de93; }
+.use-agent-button { color: #c4de93; background: transparent; border: 1px solid #455440; padding: 5px 8px; font: 10px "DM Mono", monospace; }
 #connection-dot { width: 8px; height: 8px; background: #657067; border-radius: 50%; }
 #connection-dot.online { background: #c4de93; box-shadow: 0 0 0 4px rgba(196, 222, 147, .12); }
 .signal-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
