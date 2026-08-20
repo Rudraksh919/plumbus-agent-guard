@@ -72,6 +72,10 @@ ETHERSCAN_API_KEY=your_etherscan_v2_api_key
 # Optional locally; deployed visitors can use BYOK instead.
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_MODEL=claude-3-5-haiku-latest
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.0-flash
 AGENT_GOAL=Send 5 PLUMBUS to the approved recipient for a scheduled payout.
 EXECUTE_APPROVED=false
 ```
@@ -112,9 +116,13 @@ VAULT_ADDRESS=0xdeployed_vault_address
 VITE_VAULT_ADDRESS=0xdeployed_vault_address
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_MODEL=claude-3-5-haiku-latest
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.0-flash
 ```
 
-`OPENAI_API_KEY` is optional. Omit it to run in BYOK mode: each visitor enters their own key in the password field for one proposal request. The app does not save it in local storage or Vercel environment variables.
+All provider keys are optional. Omit them to run in BYOK mode: each visitor selects OpenAI, Anthropic, or Gemini and enters a key for one proposal request. The app does not save it in local storage or Vercel environment variables.
 
 4. Deploy. Vercel runs `npm run build`, serves `dist`, and uses the serverless function only to send the visitor's one-time key to OpenAI and preflight the returned proposal.
 5. Open the generated `https://...vercel.app` URL, connect MetaMask on Base Sepolia, and run a safe and hostile Attack Lab scenario.

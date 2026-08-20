@@ -33,9 +33,11 @@ http.createServer(async (request, response) => {
         const payload = JSON.parse(body);
         const goal = String(payload.goal || "").trim();
         const apiKey = String(payload.apiKey || "").trim();
+        const provider = String(payload.provider || "openai").trim().toLowerCase();
         if (!goal || goal.length > 2_000) throw new Error("Enter an agent goal up to 2,000 characters.");
-        if (apiKey && (apiKey.length > 500 || !apiKey.startsWith("sk-"))) throw new Error("Enter a valid OpenAI API key.");
-        sendJson(response, 200, await propose(goal, { apiKey }));
+        if (apiKey.length > 500) throw new Error("Enter an API key up to 500 characters.");
+        if (!['openai', 'anthropic', 'gemini'].includes(provider)) throw new Error("Choose OpenAI, Anthropic, or Gemini.");
+        sendJson(response, 200, await propose(goal, { apiKey, provider }));
       } catch (error) {
         sendJson(response, 400, { error: error.message });
       }

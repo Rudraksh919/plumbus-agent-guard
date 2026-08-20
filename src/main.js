@@ -32,7 +32,7 @@ const elements = Object.fromEntries(
     "recipient-address", "limit-value", "budget-value", "policy-budget-value", "recipient-input", "amount-input", "safe-scenario", "attack-scenario",
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
     "change-account-button", "wallet-balance", "wallet-balance-row",
-    "llm-goal", "llm-propose-button", "llm-result", "byok-api-key", "wallet-role", "use-agent-button",
+    "llm-goal", "llm-propose-button", "llm-result", "llm-provider", "byok-api-key", "wallet-role", "use-agent-button",
     "audit-log", "clear-audit-button", "network-health",
   ].map((id) => [id, document.getElementById(id)]),
 );
@@ -309,6 +309,7 @@ async function executeIntent() {
 async function requestLlmProposal() {
   const goal = elements["llm-goal"].value.trim();
   const apiKey = elements["byok-api-key"].value.trim();
+  const providerName = elements["llm-provider"].value;
   if (!goal) {
     elements["llm-result"].textContent = "Enter an LLM agent goal first.";
     return;
@@ -319,7 +320,7 @@ async function requestLlmProposal() {
     const response = await fetch("/api/propose", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goal, apiKey }),
+      body: JSON.stringify({ goal, apiKey, provider: providerName }),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "LLM proposal failed.");
@@ -353,6 +354,10 @@ elements["safe-scenario"].addEventListener("click", loadSafeScenario);
 elements["attack-scenario"].addEventListener("click", loadAttackScenario);
 elements["execute-button"].addEventListener("click", executeIntent);
 elements["llm-propose-button"].addEventListener("click", requestLlmProposal);
+elements["llm-provider"].addEventListener("change", () => {
+  const placeholders = { openai: "sk-...", anthropic: "sk-ant-...", gemini: "AIza..." };
+  elements["byok-api-key"].placeholder = placeholders[elements["llm-provider"].value];
+});
 document.querySelectorAll("[data-goal]").forEach((button) => button.addEventListener("click", () => {
   elements["llm-goal"].value = button.dataset.goal;
   elements["llm-goal"].focus();

@@ -20,9 +20,11 @@ module.exports = async (request, response) => {
     const body = await readBody(request);
     const goal = String(body.goal || "").trim();
     const apiKey = String(body.apiKey || "").trim();
+    const provider = String(body.provider || "openai").trim().toLowerCase();
     if (!goal || goal.length > 2_000) throw new Error("Enter an agent goal up to 2,000 characters.");
-    if (apiKey && (apiKey.length > 500 || !apiKey.startsWith("sk-"))) throw new Error("Enter a valid OpenAI API key.");
-    return response.status(200).json(await propose(goal, { apiKey }));
+    if (apiKey.length > 500) throw new Error("Enter an API key up to 500 characters.");
+    if (!['openai', 'anthropic', 'gemini'].includes(provider)) throw new Error("Choose OpenAI, Anthropic, or Gemini.");
+    return response.status(200).json(await propose(goal, { apiKey, provider }));
   } catch (error) {
     return response.status(400).json({ error: error.message });
   }

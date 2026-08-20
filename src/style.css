@@ -51,9 +51,9 @@ h2 { margin-bottom: 0; font-size: 25px; line-height: 1.15; }
 .policy-footnote span { margin-right: 6px; }
 label { display: block; margin: 16px 0 8px; color: #a6b5a7; font-size: 12px; }
 label span { float: right; color: #c4de93; font-family: "DM Mono", monospace; }
-input, textarea { width: 100%; color: #f3f6ee; background: #101518; border: 1px solid #3a473e; padding: 13px; outline: none; font: 13px "DM Mono", monospace; }
+input, textarea, select { width: 100%; color: #f3f6ee; background: #101518; border: 1px solid #3a473e; padding: 13px; outline: none; font: 13px "DM Mono", monospace; }
 textarea { resize: vertical; line-height: 1.5; }
-input:focus, textarea:focus { border-color: #c4de93; }
+input:focus, textarea:focus, select:focus { border-color: #c4de93; }
 .intent-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0 10px; }
 .secondary-button, .attack-button { min-height: 42px; padding: 9px; background: transparent; border: 1px solid #455440; color: #d9e4d0; font-size: 12px; font-weight: 700; }
 .attack-button { color: #ffb0a6; border-color: #7a4b45; }
@@ -170,8 +170,8 @@ input:focus, textarea:focus { border-color: #c4de93; }
 .sentinel-mode .policy-footnote { color: var(--acid); font-family: "IBM Plex Mono", monospace; }
 .sentinel-mode label { color: #a5b8bb; font-family: "IBM Plex Mono", monospace; }
 .sentinel-mode label span { color: var(--cyan); }
-.sentinel-mode input, .sentinel-mode textarea { color: #e6ffff; border-color: #25454d; border-radius: 0; background: #050b0e; font-family: "IBM Plex Mono", monospace; }
-.sentinel-mode input:focus, .sentinel-mode textarea:focus { border-color: var(--cyan); box-shadow: inset 3px 0 0 var(--acid); }
+.sentinel-mode input, .sentinel-mode textarea, .sentinel-mode select { color: #e6ffff; border-color: #25454d; border-radius: 0; background: #050b0e; font-family: "IBM Plex Mono", monospace; }
+.sentinel-mode input:focus, .sentinel-mode textarea:focus, .sentinel-mode select:focus { border-color: var(--cyan); box-shadow: inset 3px 0 0 var(--acid); }
 .sentinel-mode .secondary-button { color: var(--cyan); border-color: #24616c; border-radius: 0; background: #07151a; }
 .sentinel-mode .attack-button { color: var(--coral); border-color: #7a394a; border-radius: 0; background: #160a10; }
 .sentinel-mode .execution-note, .sentinel-mode .intent-message, .sentinel-mode .llm-result { color: #a6b9bb; font-family: "IBM Plex Mono", monospace; }

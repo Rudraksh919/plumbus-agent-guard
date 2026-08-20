@@ -93,7 +93,13 @@
             <p class="execution-note"><b>To execute:</b> connect the deployed Agent wallet. Other connected wallets can inspect the vault in observer mode.</p>
             <p id="intent-message" class="intent-message">Connect the Agent wallet to submit a policy-checked action.</p>
             <div class="llm-console">
-              <label for="byok-api-key">Bring your own OpenAI key <span>Session only</span></label>
+              <label for="llm-provider">LLM provider <span>Session only</span></label>
+              <select id="llm-provider">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="gemini">Google Gemini</option>
+              </select>
+              <label for="byok-api-key">Bring your own API key <span>Never stored</span></label>
               <input id="byok-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
               <label for="llm-goal">LLM agent goal <span>Untrusted input</span></label>
               <div class="prompt-presets" aria-label="Attack lab presets">
