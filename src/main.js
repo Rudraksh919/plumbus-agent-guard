@@ -33,7 +33,7 @@ const elements = Object.fromEntries(
     "execute-button", "intent-message", "intent-badge", "connection-status", "connection-dot", "basescan-link",
     "change-account-button", "wallet-balance", "wallet-balance-row",
     "llm-goal", "llm-propose-button", "llm-result", "llm-provider", "byok-api-key", "wallet-role", "use-agent-button",
-    "audit-log", "clear-audit-button", "network-health",
+    "audit-log", "clear-audit-button", "network-health", "contract-state",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
@@ -118,8 +118,14 @@ function vault() {
 }
 
 async function refreshPolicy() {
+  if (!isAddress(VAULT_ADDRESS)) {
+    elements["contract-state"].textContent = "Not configured";
+    elements["network-health"].textContent = "VITE_VAULT_ADDRESS required";
+    elements["basescan-link"].removeAttribute("href");
+    setMessage("This deployment needs VITE_VAULT_ADDRESS set to the new Base Sepolia vault, then rebuilt.", "danger");
+    return;
+  }
   try {
-    if (!isAddress(VAULT_ADDRESS)) throw new Error("Set VITE_VAULT_ADDRESS to the deployed policy vault.");
     if (!provider) provider = new JsonRpcProvider(BASE_SEPOLIA.rpcUrls[0]);
     const contract = vault();
     const [owner, agent, recipient, cap, maxTotalSpend, spentAmount, token] = await Promise.all([
@@ -163,10 +169,14 @@ async function refreshPolicy() {
       elements["execute-button"].disabled = !isAgent;
       elements["use-agent-button"].hidden = isAgent;
     }
+    elements["contract-state"].textContent = "Verified";
+    elements["contract-state"].className = "verified";
     elements["network-health"].textContent = "Base Sepolia live";
   } catch (error) {
-    elements["network-health"].textContent = "RPC unavailable";
-    setMessage("Unable to load the Base Sepolia vault. Check your network connection.", "danger");
+    elements["contract-state"].textContent = "Unavailable";
+    elements["contract-state"].className = "";
+    elements["network-health"].textContent = "RPC or contract unavailable";
+    setMessage("Unable to load the configured Base Sepolia vault. Check its address and network connection.", "danger");
   }
 }
 
